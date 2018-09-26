@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import GraphiQL from 'graphiql';
 import fetch from 'isomorphic-fetch'; 
 import {CustomGraphiQL} from './CustomGraphiQL.jsx';
-
+window.token = '';
 
 /**
          * This GraphiQL example illustrates how to use some of GraphiQL's props
@@ -56,36 +56,12 @@ import {CustomGraphiQL} from './CustomGraphiQL.jsx';
             }).join('&');
             history.replaceState(null, null, newSearch);
         }
-        // Defines a GraphQL fetcher using the fetch API. You're not required to
-        // use fetch, and could instead implement graphQLFetcher however you like,
-        // as long as it returns a Promise or Observable.
-        function graphQLFetcher(graphQLParams) {
-            // This example expects a GraphQL server at the path /graphql.
-            // Change this to point wherever you host your GraphQL server.
-            return fetch('/umbraco/graphql', {
-                method: 'post',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(graphQLParams),
-                credentials: 'include',
-            }).then(function (response) {
-               
-                return response.text();
-            }).then(function (responseBody) {
-                try {
-                    return JSON.parse(responseBody);
-                } catch (error) {
-                    return responseBody;
-                }
-            });
-        }
+        
         
         var mountNode = document.getElementById('graphiql');
         console.log("mounting to ", mountNode);
 ReactDOM.render(
-  <CustomGraphiQL fetcher ={graphQLFetcher}
+  <CustomGraphiQL 
   query={parameters.query}
   variables={ parameters.variables}
   operationName={ parameters.operationName}

@@ -36,11 +36,8 @@ const defaultQuery = `# Welcome to GraphiQL
 export class CustomGraphiQL extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      // REQUIRED:
-      // `fetcher` must be provided in order for GraphiQL to operate
-      fetcher: this.props.fetcher,
-
+    var stateModel= {
+     
       // OPTIONAL PARAMETERS
       // GraphQL artifacts
       query: this.props.query,
@@ -67,9 +64,38 @@ export class CustomGraphiQL extends React.Component {
       // does not provide them. Change this if your GraphQL Definitions
       // should behave differently than what's defined here:
       // (https://github.com/graphql/graphiql/blob/master/src/utility/fillLeafs.js#L75)
-      getDefaultFieldNames: null
+      getDefaultFieldNames: null,
+      token:"",
     };
+  
+    stateModel.fetcher = function(graphQLParams) {
+          // This example expects a GraphQL server at the path /graphql.
+          // Change this to point wherever you host your GraphQL server.
+          return fetch('/umbraco/graphql', {
+              method: 'post',
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  'token': ''
+              },
+              body: JSON.stringify(graphQLParams),
+              credentials: 'include',
+          }).then(function (response) {
+             
+              return response.text();
+          }).then(function (responseBody) {
+              try {
+                  return JSON.parse(responseBody);
+              } catch (error) {
+                  return responseBody;
+              }
+          });
+      }
+    this.state = stateModel;
+    this.updateToken = this.updateToken.bind(this);
   }
+
+      
 
   // Example of using the GraphiQL Component API via a toolbar button.
   handleClickPrettifyButton(event) {
@@ -82,15 +108,46 @@ export class CustomGraphiQL extends React.Component {
   handleHistoryButton(event) {
     this.graphiql.handleToggleHistory(event);
   }
+  updateToken(event){
+    var newToken = event.target.value
+    console.log("setting token", newToken);
+    this.setState({token: newToken,fetcher:function(graphQLParams) {
+        // This example expects a GraphQL server at the path /graphql.
+        // Change this to point wherever you host your GraphQL server.
+        return fetch('/umbraco/graphql', {
+            method: 'post',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'token': newToken
+            },
+            body: JSON.stringify(graphQLParams),
+            credentials: 'include',
+        }).then(function (response) {
+          
+            return response.text();
+        }).then(function (responseBody) {
+            try {
+                return JSON.parse(responseBody);
+            } catch (error) {
+                return responseBody;
+            }
+        });
+    }});
+    window.token = newToken;
+    console.log("graphiql", this.graphiql);
+    window.graphiqldebug = this.graphiql;
+    
+  }
   render() {
     return (
       <GraphiQL ref={c => { this.graphiql = c; }} {...this.state}>
         <GraphiQL.Logo>
           Umbraco Graphql
         </GraphiQL.Logo>
-       
+     
         <GraphiQL.Footer>
-		footer
+        <input type="text" value={this.state.token} onChange={this.updateToken} />
         </GraphiQL.Footer>
       </GraphiQL>
     );

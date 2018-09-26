@@ -11,13 +11,13 @@ using Umbraco.Core.Services;
 
 namespace Our.Umbraco.GraphQL.Schema
 {
-    public class UmbracoSchema : global::GraphQL.Types.Schema
+    public class UmbracoTokenBasedSchema : global::GraphQL.Types.Schema
     {
         // TODO: Move registration to another place
-        public UmbracoSchema(
+        public UmbracoTokenBasedSchema(
             IContentTypeService contentTypeService,
             IMemberTypeService memberTypeService,
-            GraphQLServerOptions options)
+            GraphQLServerOptions options, string token)
         {
             if (contentTypeService == null)
             {
@@ -27,12 +27,12 @@ namespace Our.Umbraco.GraphQL.Schema
             FieldNameConverter = new DefaultFieldNameConverter();
 
             var resolveName = options.PublishedContentNameResolver;
-            var documentTypes = CreateGraphTypes(contentTypeService.GetAllContentTypes(), PublishedItemType.Content, resolveName).ToList();
-            var mediaTypes = CreateGraphTypes(contentTypeService.GetAllMediaTypes(), PublishedItemType.Media, resolveName);
+            var documentTypes = CreateGraphTypes(contentTypeService.GetAllContentTypes(), PublishedItemType.Content,token, resolveName).ToList();
+            var mediaTypes = CreateGraphTypes(contentTypeService.GetAllMediaTypes(), PublishedItemType.Media, token, resolveName);
 
             RegisterTypes(documentTypes.ToArray());
             RegisterTypes(mediaTypes.ToArray());
-          
+
             var query = new UmbracoQuery();
             foreach (var type in documentTypes.FindAll(x => x.GetMetadata<bool>("allowedAtRoot")))
             {
@@ -53,11 +53,14 @@ namespace Our.Umbraco.GraphQL.Schema
             }
 
             Query = query;
+            Token = token;
         }
+
+        public string Token { get; }
 
         public static IEnumerable<IGraphType> CreateGraphTypes(
            IEnumerable<IContentTypeComposition> contentTypes,
-           PublishedItemType publishedItemType,
+           PublishedItemType publishedItemType, string token, 
            Func<IContentTypeBase, string> resolveName = null)
         {
             if (resolveName == null)
@@ -87,7 +90,7 @@ namespace Our.Umbraco.GraphQL.Schema
                 // TODO: Permissions for mutations
                 graphType.RequirePermission($"{contentType.Alias:can_read}");
 
-                graphType.AddUmbracoContentPropeties(contentType, publishedItemType);
+                graphType.AddUmbracoContentPropeties(contentType, publishedItemType, token);
 
                 yield return graphType;
                 interfaceGraphTypes.Add(contentType.Alias, graphType);
@@ -99,7 +102,7 @@ namespace Our.Umbraco.GraphQL.Schema
                 {
                     Name = resolveName(contentType),
                     Description = contentType.Description,
-                    IsTypeOf = content => ((IPublishedContent) content).DocumentTypeAlias == contentType.Alias,
+                    IsTypeOf = content => ((IPublishedContent)content).DocumentTypeAlias == contentType.Alias,
                     Metadata =
                     {
                         ["documentTypeAlias"] = contentType.Alias,
@@ -121,7 +124,7 @@ namespace Our.Umbraco.GraphQL.Schema
                 }
 
                 graphType.AddUmbracoBuiltInProperties();
-                graphType.AddUmbracoContentPropeties(contentType, publishedItemType);
+                graphType.AddUmbracoContentPropeties(contentType, publishedItemType, token);
 
                 yield return graphType;
             }

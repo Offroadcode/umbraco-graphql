@@ -254,6 +254,7 @@
     <Compile Include="GraphQLAuthenticationExtensions.cs" />
     <Compile Include="Instrumentation\MiniProfilerFieldsMiddleware.cs" />
     <Compile Include="Schema\Conventions.cs" />
+    <Compile Include="Schema\UmbracoTokenBasedSchema.cs" />
     <Compile Include="Types\ConnectionExtensions.cs" />
     <Compile Include="Types\ConnectionWithFilterBuilder.cs" />
     <Compile Include="Web\AppBuilderExtensions.cs" />

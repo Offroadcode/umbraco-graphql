@@ -74,12 +74,19 @@ namespace Our.Umbraco.GraphQL.Types
         public static ComplexGraphType<IPublishedContent> AddUmbracoContentPropeties(
             this ComplexGraphType<IPublishedContent> graphType,
             IContentTypeComposition contentType,
-            PublishedItemType publishedItemType)
+            PublishedItemType publishedItemType, string token = null)
         {
 
             var publishedContentType = PublishedContentType.Get(publishedItemType, contentType.Alias);
             foreach (var property in contentType.CompositionPropertyTypes)
             {
+                if(token == "test")
+                {
+                    if(property.Alias == "sitename")
+                    {
+                        continue;
+                    }
+                }
                 //TODO: black/whitelist properties
                 if (property.PropertyEditorAlias == Constants.PropertyEditors.ListViewAlias ||
                     property.PropertyEditorAlias == Constants.PropertyEditors.FolderBrowserAlias ||

@@ -41,7 +41,7 @@ namespace Our.Umbraco.GraphQL.Web
         public override async Task Invoke(IOwinContext context)
         {
             try
-            {
+            {/*
                 var schema = _applicationContext.ApplicationCache.RuntimeCache.GetCacheItem<UmbracoSchema>(
                     "Our.Umbraco.GraphQL::Schema",
                     () =>
@@ -51,7 +51,11 @@ namespace Our.Umbraco.GraphQL.Web
                             _applicationContext.Services.MemberTypeService,
                             _options
                         )
-                );
+                );*/
+                var user = context.Request.Headers["token"];
+                var schema = new UmbracoTokenBasedSchema(_applicationContext.Services.ContentTypeService,
+                            _applicationContext.Services.MemberTypeService,
+                            _options, user);
 
                 if (false == context.Request.Path.HasValue)
                 {
